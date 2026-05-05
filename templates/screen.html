@@ -1,0 +1,341 @@
+{% extends '_base.html' %} {% block html_head0 %} <script defer src="/static/socket.io.js"></script> {% endblock %} {% block content %} <div class="container mx-auto w-full pt-10 pb-12 sm:pt-24 sm:pb-12 md:pt-28 lg:px-4" x-data="screen()" x-init="init()"><div class="flex items-center justify-between"><h1 class="px-1 py-4 font-bold uppercase text-gray-600"> {{ locales["nav_screen"] }} </h1></div> {% include '_notification.html' %} <div class="mb-4 w-full flex flex-col md:flex-row gap-4 px-2 leading-normal text-gray-800 md:px-0"><div class="grow rounded border bg-white shadow"><div class="flex items-center justify-between border-b grow"><div class="flex items-stretch font-bold text-gray-600 grow"><button @click="switch_tab('screen_settings')" :class="tab_page === 'screen_settings' ? 'border-b-2 border-b-pcatblue' : ''" class="flex-1 items-center border-x px-4 py-3"> {{ locales["tab_screen_settings"] }} </button><button @click="switch_tab('screen_editor')" :class="tab_page === 'screen_editor' ? 'border-b-2 border-b-pcatblue' : ''" class="flex-1 items-center border-x px-4 py-3"> {{ locales["tab_screen_editor"] }} </button></div></div></div></div><div class="flex flex-wrap" x-show="tab_page === 'screen_settings'" x-cloak><div class="flex-grow bg-white shadow rounded flex flex-col overflow-y-auto mr-4 mb-4 pb-4"><div class="flex justify-between border-b p-3"><h5 class="font-bold text-gray-600">{{ locales["screen_settings_title"] }}</h5></div><div class="flex flex-col sm:flex-row gap-4 p-4"><table class="list-info w-full p-5 text-gray-700 mb-4"><tbody><tr><td class="text-left font-semibold">{{ locales["on_battery_auto_dim_time"] }}</td><td class="text-right font-semibold"><div class="flex items-center justify-end"><input type="number" x-model.number="basic.on_battery_auto_dim_time" placeholder="-" class="w-40 text-center border rounded px-2 py-1"></div></td></tr><tr><td class="text-left font-semibold">{{ locales["on_charger_auto_dim_time"] }}</td><td class="text-right font-semibold"><div class="flex items-center justify-end"><input type="number" x-model.number="basic.on_charger_auto_dim_time" placeholder="-" class="w-40 text-center border rounded px-2 py-1"></div></td></tr><tr><td class="text-left font-semibold">{{ locales["ping_site0"] }}</td><td class="text-right font-semibold"><div class="flex items-center justify-end"><input type="text" x-model="basic.ping_site0" placeholder="" class="w-40 text-center border rounded px-2 py-1"></div></td></tr><tr><td class="text-left font-semibold">{{ locales["ping_site1"] }}</td><td class="text-right font-semibold"><div class="flex items-center justify-end"><input type="text" x-model="basic.ping_site1" placeholder="" class="w-40 text-center border rounded px-2 py-1"></div></td></tr><tr><td class="text-left font-semibold">{{ locales["screen_max_brightness"] }} 1 - 100</td><td class="text-right font-semibold"><div class="flex items-center justify-end"><input type="number" x-model.number="basic.screen_max_brightness" placeholder="" min="1" max="100" class="w-40 text-center border rounded px-2 py-1"></div></td></tr><tr><td class="text-left font-semibold">{{ locales["screen_min_brightness"] }} 0 - 100</td><td class="text-right font-semibold"><div class="flex items-center justify-end"><input type="number" x-model.number="basic.screen_min_brightness" placeholder="" min="0" max="100" class="w-40 text-center border rounded px-2 py-1"></div></td></tr><tr><td class="text-left font-semibold">{{ locales["show_sms_feature"] }}</td><td class="text-right font-semibold"><div class="flex items-center justify-end"><label class="relative flex cursor-pointer items-center"><input class="peer sr-only" type="checkbox" x-model="basic.show_sms"><div class="h-6 w-11 rounded-full border-2 border-gray-200 bg-gray-200 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:shadow-sm after:transition-all after:duration-300 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white"></div><span class="ml-2 select-none text-base text-gray-400" x-text="basic.show_sms ? '{{locales.common_enable}}' : '{{locales.common_disable}}'"></span></label></div></td></tr><tr x-show="basic.show_sms"><td class="text-left font-semibold">{{ locales["sms_limit_for_screen"] }} 1 - 100</td><td class="text-right font-semibold"><div class="flex items-center justify-end"><input type="number" x-model.number="basic.sms_limit_for_screen" placeholder="5" min="1" max="100" class="w-40 text-center border rounded px-2 py-1"></div></td></tr></tbody></table></div><div class="flex space-x-2 flex-wrap justify-end px-4"><button @click="saveSettings()" :disabled="loading.saveSettings" :class="loading.saveSettings ? 'bg-gray-400 cursor-not-allowed' : 'bg-pcatblue hover:bg-pcatblue-400'" class="text-white px-4 py-2 rounded-lg font-semibold w-40 flex items-center justify-center"><svg x-show="loading.saveSettings" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewbox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span x-text="getSaveSettingsButtonText()"></span></button></div></div><div class="min-w-[300px] max-w-[300px] bg-white shadow rounded flex flex-col flex-start mb-4"><div class="flex justify-between border-b p-3"><h5 class="font-bold text-gray-600">{{ locales["screen_live_title"] }}</h5></div><div class="flex items-center justify-center p-4"><img :src="`/api/v1/screen/frame.png?ts=${frameTs}`" alt="Screen frame" class="max-w-full max-h-[400px] rounded-2xl"></div><div class="flex flex-wrap justify-center px-4 mt-auto mb-4"><button @click="shortClick()" :disabled="loading.shortClick" :class="loading.shortClick ? 'bg-green-600 scale-95' : 'bg-green-500 hover:bg-green-600 active:scale-95'" class="text-white px-4 py-2 rounded-lg font-semibold w-40 flex items-center justify-center space-x-2 transition-all duration-75"><svg x-show="loading.shortClick" class="animate-spin h-4 w-4 text-white" fill="none" viewbox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><img x-show="!loading.shortClick" src="/static/short_click.svg" class="w-4 h-4"><span x-text="getShortClickButtonText()"></span></button></div></div></div><div x-show="tab_page === 'screen_editor'" x-cloak class="flex flex-wrap  bg-gray-100"><div class="flex-grow bg-white shadow rounded flex flex-col space-y-2 overflow-y-auto mr-4 mb-4 pb-4"><div class="flex justify-between border-b p-3"><h5 class="font-bold text-gray-600">{{ locales["user_config_json_title"] }}</h5></div><div class="flex flex-col px-4 py-1 space-y-2"><p class="text-gray-700">{{ locales["screen_json_help_text"] }}</p><div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded space-y-2"><p class="text-sm text-gray-700"><strong>📋 {{ locales["reference_config"] | default("Reference Config") }}:</strong><a href="https://raw.githubusercontent.com/photonicat/photonicat2_mini_display/refs/heads/main/config.json" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-mono text-xs"> photonicat2_mini_display/config.json </a></p><p class="text-xs text-gray-600">{{ locales["reference_config_description"] | default("View the complete example configuration with all available options and data keys.") }}</p><p class="text-sm text-gray-700"><strong>📖 {{ locales["programming_guide"] | default("Programming Guide") }}:</strong> {% if locales.get("programming_guide") == "编程指南" %} <a href="https://raw.githubusercontent.com/photonicat/photonicat2_mini_display/refs/heads/main/docs/screen_guide-zh_cn.md" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-mono text-xs"> screen_guide-zh_cn.md </a> {% else %} <a href="https://raw.githubusercontent.com/photonicat/photonicat2_mini_display/refs/heads/main/docs/screen_guide-en.md" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-mono text-xs"> screen_guide-en.md </a> {% endif %} </p><p class="text-xs text-gray-600">{{ locales["programming_guide_description"] | default("Complete programming guide with examples and data key reference.") }}</p></div></div><div class="w-full rounded font-mono text-xs mt-0 px-4"><textarea x-model="editor" class="flex-1 w-full border rounded font-mono text-xs" rows="25"></textarea></div><div class="flex space-x-4 justify-end px-3"><button @click="restartScreen()" :disabled="loading.restartScreen" :class="loading.restartScreen ? 'bg-gray-400 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600'" class="text-white px-4 py-2 rounded-lg font-semibold w-40 flex items-center justify-center"><svg x-show="loading.restartScreen" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewbox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 18-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span x-text="getRestartScreenButtonText()"></span></button><button @click="loadDefault()" class="bg-red-300 hover:bg-red-400 text-white px-4 py-2 rounded-lg font-semibold w-40"> {{ locales["load_default"] }} </button><button @click="saveEditor()" :disabled="loading.saveEditor" :class="loading.saveEditor ? 'bg-gray-400 cursor-not-allowed' : 'bg-pcatblue hover:bg-pcatblue-400'" class="text-white px-4 py-2 rounded-lg font-semibold w-40 flex items-center justify-center"><svg x-show="loading.saveEditor" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewbox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 18-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span x-text="getSaveEditorButtonText()"></span></button></div></div><div class="min-w-[300px] max-w-[300px] bg-white shadow rounded flex flex-col flex-start mb-4"><div class="flex justify-between border-b p-3"><h5 class="font-bold text-gray-600">{{ locales["screen_live_title"] }}</h5></div><div class="flex items-center justify-center p-4"><img :src="`/api/v1/screen/frame.png?ts=${frameTs}`" alt="Screen frame" class="max-w-full max-h-[400px] rounded-2xl"></div><div class="flex flex-wrap justify-center px-4 mt-auto mb-4"><button @click="shortClick()" :disabled="loading.shortClick" :class="loading.shortClick ? 'bg-green-600 scale-95' : 'bg-green-500 hover:bg-green-600 active:scale-95'" class="text-white px-4 py-2 rounded-lg font-semibold w-40 flex items-center justify-center space-x-2 transition-all duration-75"><svg x-show="loading.shortClick" class="animate-spin h-4 w-4 text-white" fill="none" viewbox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><img x-show="!loading.shortClick" src="/static/short_click.svg" class="w-4 h-4"><span x-text="getShortClickButtonText()"></span></button></div></div></div></div> {% endblock %} {% block bottom %} <script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("app").set_page("screen");
+
+    Alpine.data("screen", () => ({
+      tab_page: (window.location.hash && ["screen_settings", "screen_editor"].includes(window.location.hash.substring(1))) ? window.location.hash.substring(1) : "screen_settings",
+
+      notification: {
+        show: false,
+        message: '',
+        message_en: '',
+        message_cn: '',
+        type: 'info' // 'success', 'error', 'info'
+      },
+
+      // Loading states for buttons
+      loading: {
+        saveSettings: false,
+        shortClick: false,
+        restartScreen: false,
+        saveEditor: false
+      },
+
+      basic: {
+        ping_site0: "",
+        ping_site1: "",
+        on_battery_auto_dim_time: "",
+        on_charger_auto_dim_time: "",
+        screen_max_brightness: 100,
+        screen_min_brightness: 0,
+        show_sms: true,
+        sms_limit_for_screen: 5,
+      },
+
+      editor: "",
+      frameTs: Date.now(),
+      refreshInterval: null,
+
+      init() {
+        // open socket.io and handle frame updates
+        window.socket = io({ transports: ["polling"], upgrade: false });
+        socket.on("frame_update", () => {
+          this.frameTs = Date.now();
+        });
+
+        // start auto-refresh timer for screen image (every 3 seconds)
+        this.startAutoRefresh();
+
+        // load data for both panels
+        this.loadSettings();
+        this.loadEditor();
+        this.loadSmsLimit();
+      },
+
+      startAutoRefresh() {
+        // clear any existing interval
+        if (this.refreshInterval) {
+          clearInterval(this.refreshInterval);
+        }
+        
+        // set up new interval to refresh every 3 seconds
+        this.refreshInterval = setInterval(() => {
+          this.frameTs = Date.now();
+        }, 3000);
+      },
+
+      stopAutoRefresh() {
+        if (this.refreshInterval) {
+          clearInterval(this.refreshInterval);
+          this.refreshInterval = null;
+        }
+      },
+
+      switch_tab(tab) {
+        this.tab_page = tab;
+        window.location.hash = tab;
+      },
+
+      async loadSettings() {
+        try {
+          let res = await fetch("/api/v1/screen/user_config.json");
+          let cfg = await res.json();
+
+          this.basic.ping_site0 = cfg.ping_site0 || "taobao.com";
+          this.basic.ping_site1 = cfg.ping_site1 || "photonicat.com";
+          this.basic.on_battery_auto_dim_time = cfg.screen_dimmer_time_on_battery_seconds || 60;
+          this.basic.on_charger_auto_dim_time = cfg.screen_dimmer_time_on_dc_seconds       || 86400;
+          this.basic.screen_max_brightness = cfg.screen_max_brightness || 100;
+          this.basic.screen_min_brightness = cfg.screen_min_brightness || 0;
+          this.basic.show_sms                  = cfg.show_sms !== false;
+          this.basic.sms_limit_for_screen      = cfg.sms_limit_for_screen || 5;
+        } catch (e) {
+          console.error("Failed loading settings", e);
+        }
+      },
+
+      async saveSettings() {
+        this.loading.saveSettings = true;
+        try {
+          let current = JSON.parse(this.editor);
+
+          let merged = {
+            ...current,
+            show_sms:                             this.basic.show_sms,
+            screen_dimmer_time_on_battery_seconds: this.basic.on_battery_auto_dim_time,
+            screen_dimmer_time_on_dc_seconds:      this.basic.on_charger_auto_dim_time,
+            ping_site0:                           this.basic.ping_site0,
+            ping_site1:                           this.basic.ping_site1,
+            screen_max_brightness:                this.basic.screen_max_brightness,
+            screen_min_brightness:                this.basic.screen_min_brightness,
+            screen_off_from:                       this.basic.screen_off_from,
+            screen_off_to:                         this.basic.screen_off_to,
+            sms_limit_for_screen:                 this.basic.sms_limit_for_screen,
+          };
+
+          // update the JSON editor with merged values
+          this.editor = JSON.stringify(merged, null, 2);
+
+          // save using the existing saveEditor method
+          await this.saveEditor(false);
+          
+          // Also save SMS limit to shared user config
+          if (this.basic.sms_limit_for_screen !== undefined) {
+            try {
+              await fetch("/api/v1/sms_limit_for_screen.json", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sms_limit_for_screen: this.basic.sms_limit_for_screen }),
+              });
+            } catch (e) {
+              console.error("Failed to save SMS limit:", e);
+            }
+          }
+          
+          // Show success message
+          this.showNotification("{{locales.config_saved}}", "配置已保存", 'success');
+        } catch (e) {
+          console.error("Save settings failed", e);
+          this.showNotification("Error saving settings.", "保存设置错误", 'error');
+        } finally {
+          this.loading.saveSettings = false;
+        }
+      },
+
+      async loadEditor() {
+        try {
+          let res = await fetch("/api/v1/screen/user_config.json");
+          let txt = await res.text();
+          this.editor = JSON.stringify(JSON.parse(txt), null, 2);
+        } catch (e) {
+          console.error("Failed loading JSON", e);
+          this.editor = "{}";
+        }
+      },
+
+      async loadSmsLimit() {
+        try {
+          let res = await fetch("/api/v1/sms_limit_for_screen.json");
+          let data = await res.json();
+          this.basic.sms_limit_for_screen = data.sms_limit_for_screen || 5;
+        } catch (e) {
+          console.error("Failed loading SMS limit", e);
+          this.basic.sms_limit_for_screen = 5;
+        }
+      },
+
+      loadDefault() {
+        this.editor = "{}";
+      },
+
+      async saveEditor(showAlert = true) {
+        if (showAlert) {
+          this.loading.saveEditor = true;
+        }
+        try {
+          let obj = JSON.parse(this.editor);
+          await fetch("/api/v1/screen/user_config.json", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(obj),
+          });
+          if (showAlert) {
+            this.showNotification("JSON saved.", "JSON 已保存", 'success');
+          }
+        } catch (e) {
+          console.error("Save JSON failed", e);
+          if (showAlert) {
+            this.showNotification("Invalid JSON or save error.", "无效的 JSON 或保存错误", 'error');
+          }
+          throw e; // Re-throw to ensure calling functions handle the error
+        } finally {
+          if (showAlert) {
+            this.loading.saveEditor = false;
+          }
+        }
+      },
+
+      async restartScreen() {
+        this.loading.restartScreen = true;
+        try {
+          const response = await fetch("/api/v1/screen/restart", {
+            method: "GET"
+          });
+          const result = await response.json();
+          
+          if (result.status === "success") {
+            this.showNotification("Screen restarted successfully.", "屏幕重启成功", 'success');
+          } else {
+            console.error("Error: " + result.message);
+            this.showNotification("Error restarting screen.", "屏幕重启错误", 'error');
+          }
+        } catch (e) {
+          console.error("Restart screen failed", e);
+          this.showNotification("Error restarting screen.", "屏幕重启错误", 'error');
+        } finally {
+          this.loading.restartScreen = false;
+        }
+      },
+
+      async shortClick() {
+        // Ultra-responsive: Set loading state
+        this.loading.shortClick = true;
+        
+        // Immediate visual feedback - refresh screen instantly
+        this.frameTs = Date.now();
+        
+        // Reset loading state quickly for immediate responsiveness
+        setTimeout(() => {
+          this.loading.shortClick = false;
+        }, 150);
+        
+        // Wait 200ms then make HTTP request
+        setTimeout(() => {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1000); // 1 second timeout
+            
+            fetch("/api/v1/screen/short_click", {
+              method: "GET",
+              signal: controller.signal
+            }).then(response => {
+              clearTimeout(timeoutId);
+              return response.json();
+            }).then(result => {
+              if (result.status === "success") {
+                // Queue additional screen refresh after short delay
+                setTimeout(() => {
+                  this.frameTs = Date.now();
+                }, 200);
+              } else {
+                console.error("Error: " + result.message);
+              }
+            }).catch(e => {
+              if (e.name !== 'AbortError') {
+                console.error("Short click failed", e);
+              }
+            });
+          } catch (e) {
+            console.error("Short click setup failed", e);
+          }
+        }, 200);
+      },
+
+      async checkAndRefreshScreen() {
+        // Get current image source for comparison
+        const img = document.querySelector('img[alt="Screen frame"]');
+        if (!img) return;
+        
+        const originalSrc = img.src;
+        let retryCount = 0;
+        const maxRetries = 20;
+        
+        const attemptRefresh = () => {
+          retryCount++;
+          this.frameTs = Date.now();
+          
+          // Wait for image to potentially load new content
+          setTimeout(() => {
+            try {
+              // Check if the image source actually changed (different timestamp)
+              const newSrc = img.src;
+              
+              if ((originalSrc === newSrc || !img.complete) && retryCount < maxRetries) {
+                setTimeout(attemptRefresh, 100);
+              } else if (retryCount >= maxRetries) {
+                // Max retries reached, stopping refresh attempts
+              } else {
+                // Screen successfully updated
+              }
+            } catch (e) {
+              if (retryCount < maxRetries) {
+                setTimeout(attemptRefresh, 100);
+              }
+            }
+          }, 100);
+        };
+        
+        // Start first attempt after 50ms
+        setTimeout(attemptRefresh, 50);
+      },
+
+      showNotification(message_en, message_cn = '', type = 'info') {
+        this.notification.message_en = message_en;
+        this.notification.message_cn = message_cn;
+        this.notification.message = message_en; // Fallback
+        this.notification.type = type;
+        this.notification.show = true;
+        
+        // Auto-hide after 4 seconds for success and info messages
+        if (type !== 'error') {
+          setTimeout(() => {
+            this.notification.show = false;
+          }, 4000);
+        }
+        
+        // Also log to console for debugging
+        console.log(type.toUpperCase() + ': ' + message_en);
+      },
+
+      hideNotification() {
+        this.notification.show = false;
+      },
+
+      getSaveSettingsButtonText() {
+        return this.loading.saveSettings ? '{{ locales["common_saving"] | default("Saving...") }}' : '{{ locales["save_settings"] }}';
+      },
+
+      getRestartScreenButtonText() {
+        return this.loading.restartScreen ? '{{ locales["common_restarting"] | default("Restarting...") }}' : '{{ locales["restart_screen"] }}';
+      },
+
+      getShortClickButtonText() {
+        return this.loading.shortClick ? '{{ locales["common_processing"] | default("Processing...") }}' : '{{ locales["short_click"] }}';
+      },
+
+      getSaveEditorButtonText() {
+        return this.loading.saveEditor ? '{{ locales["common_saving"] | default("Saving...") }}' : '{{ locales["save_json"] }}';
+      },
+    }));
+  });
+</script> {% endblock %} 

@@ -1,0 +1,9 @@
+{% extends '_base.html' %} {% block content %} <div class="container mx-auto w-full pt-14 pb-12 sm:pt-24 sm:pb-12 md:pt-28 lg:px-4" x-data="statistics"><div class="flex items-center justify-between"><div x-cloak x-show="$store.app.tips !== ''" class="text-pcatgray3 hover:text-gray-500 text-sm flex items-center justify-end w-56 lg:w-[450px]"><strong class="font-semibold mr-2">Tips:</strong><p class="break-words" x-text="$store.app.tips" x-bind:title="$store.app.tips"></p></div></div><div class="mb-8 flex w-full h-screen flex-col justify-between space-y-4 px-2 leading-normal text-gray-800 lg:flex-row lg:space-y-0 lg:space-x-4 lg:px-0"><iframe class="grow" src="http://res.livecopilot.net"></iframe></div></div><script>
+  document.addEventListener("alpine:init", () => {
+    
+  });
+</script> {% endblock %} {% block bottom %} <script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("app").set_page("livecopilot");
+  });
+</script> {% endblock %} 
