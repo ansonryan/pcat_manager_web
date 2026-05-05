@@ -6,10 +6,9 @@ PKG_RELEASE:=116
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/ansonryan/pcat_manager_web.git
-PKG_SOURCE_VERSION:=d36f38cdd46e73f4e62530b62d6c6f7b04db0fb6
+PKG_SOURCE_VERSION:=main
 
 PKG_LICENSE:=GPL-3.0
-PKG_LICENSE_FILES:=
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -29,9 +28,9 @@ endef
 
 define Package/pcat-manager-web/install
  $(INSTALL_DIR) $(1)/usr/share/pcat-manager-web
- $(CP) $(PKG_BUILD_DIR)/* $(1)/usr/share/pcat-manager-web/
+ $(CP) ./files/usr/share/pcat-manager-web/* $(1)/usr/share/pcat-manager-web/
  $(INSTALL_DIR) $(1)/etc/init.d
- $(INSTALL_BIN) $(PKG_BUILD_DIR)/pcat-manager-web $(1)/etc/init.d/
+ $(INSTALL_BIN) ./files/etc/init.d/pcat-manager-web $(1)/etc/init.d/
 endef
 
 $(eval $(call BuildPackage,pcat-manager-web))
